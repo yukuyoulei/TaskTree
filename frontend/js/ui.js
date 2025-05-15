@@ -558,9 +558,22 @@ function renderTreeNode(node, parentElement, currentFocusTaskId) {
 function openRelationsModal(taskId) {
     const modal = document.getElementById("relations-modal");
     if (!modal) return;
-    // You might want to pre-fill current relations or clear the form
-    document.getElementById("relations-form").reset();
-    loadTaskRelationships(taskId); // Load current relations into the modal list
+    // 重置表单并添加一个隐藏字段存储当前任务ID
+    const form = document.getElementById("relations-form");
+    form.reset();
+    
+    // 检查是否已存在隐藏字段，如果不存在则创建
+    let hiddenInput = document.getElementById("current-task-id-for-relations");
+    if (!hiddenInput) {
+        hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.id = "current-task-id-for-relations";
+        hiddenInput.name = "currentTaskId";
+        form.appendChild(hiddenInput);
+    }
+    hiddenInput.value = taskId;
+    
+    loadTaskRelationships(taskId); // 加载当前关联到模态框列表
     modal.style.display = "block";
 }
 
@@ -625,48 +638,6 @@ async function loadTaskRelationships(taskId) {
         relationshipsListDiv.innerHTML = `<p>Error loading relationships: ${error.message}</p>`;
         console.error("Error in loadTaskRelationships:", error);
     }
-}
-
-async function openRelationsModal(currentTaskId) {
-    const modal = document.getElementById("relations-modal");
-    const relatedTaskSelect = document.getElementById("related-task-id-select");
-    const currentTaskIdInput = document.getElementById("current-task-id-for-relations");
-
-    if (!modal || !relatedTaskSelect || !currentTaskIdInput) {
-        console.error("Relations modal, select dropdown, or current task ID input not found.");
-        showError("Relationship management UI elements are missing.");
-        return;
-    }
-
-    currentTaskIdInput.value = currentTaskId;
-
-    relatedTaskSelect.innerHTML = "<option value=''>Loading tasks...</option>";
-    try {
-        const tasksResponse = await getTasks({ pageSize: 1000 });
-        const tasks = tasksResponse.tasks || tasksResponse;
-        relatedTaskSelect.innerHTML = "<option value=''>Select a task to relate</option>";
-        if (tasks && tasks.length > 0) {
-            tasks.forEach(task => {
-                if (task.taskId != currentTaskId) {
-                    const option = document.createElement("option");
-                    option.value = task.taskId;
-                    option.textContent = `${task.title} (ID: ${task.taskId})`;
-                    relatedTaskSelect.appendChild(option);
-                }
-            });
-        } else {
-            relatedTaskSelect.innerHTML = "<option value=''>No other tasks available to relate</option>";
-        }
-    } catch (error) {
-        relatedTaskSelect.innerHTML = "<option value=''>Error loading tasks</option>";
-        console.error("Failed to populate tasks for relations modal:", error);
-        showError("Could not load tasks for relationship selection.");
-    }
-
-    const relationshipTypeSelect = document.getElementById("relationship-type-select");
-    if(relationshipTypeSelect) relationshipTypeSelect.value = "Related";
-
-    modal.style.display = "block";
 }
 
 function closeRelationsModal() {
@@ -780,25 +751,26 @@ function initializeTaskDetailPage() {
 
 async function handleRelationsFormSubmit(event) {
     event.preventDefault();
+    // 从隐藏字段获取当前任务ID
     const currentTaskId = document.getElementById("current-task-id-for-relations").value;
-    const relatedTaskIdValue = document.getElementById("related-task-id-select").value;
-    const relationshipTypeValue = document.getElementById("relationship-type-select").value;
+    const relatedTaskIdValue = document.getElementById("related-task-id").value;
+    const relationshipTypeValue = document.getElementById("relationship-type").value;
 
     if (!currentTaskId || !relatedTaskIdValue || !relationshipTypeValue) {
-        showError("Please select a task and a relationship type.");
+        showError("请选择一个任务和关联类型。");
         return;
     }
     
     try {
         await addTaskRelationship(currentTaskId, { relatedTaskId: relatedTaskIdValue, relationshipType: relationshipTypeValue });
-        showSuccess("Relationship added successfully!");
+        showSuccess("关联关系添加成功！");
         closeRelationsModal();
         loadTaskRelationships(currentTaskId);
         loadTaskTree(currentTaskId);
-        document.getElementById("related-task-id-select").value = "";
-        document.getElementById("relationship-type-select").value = "Related";
+        document.getElementById("related-task-id").value = "";
+        document.getElementById("relationship-type").value = "related";
     } catch (error) {
-        showError(error.message || "Failed to add relationship.");
+        showError(error.message || "添加关联关系失败。");
         console.error("Error in handleRelationsFormSubmit:", error);
     }
 }
