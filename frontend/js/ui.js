@@ -685,7 +685,8 @@ async function loadTaskTree(taskId) {
 function renderTaskTreeNode(node, parentElement, level, highlightTaskId) {
     const listItem = document.createElement("li");
     let taskDisplay = node.title ? node.title : `Task ${node.taskId}`;
-    let taskLink = `<a href=\"task-detail.html?id=${node.taskId}\">${taskDisplay}</a>`;
+    let statusDisplay = node.status ? ` [${node.status}]` : "";
+    let taskLink = `<a href=\"task-detail.html?id=${node.taskId}\">${taskDisplay}</a>${statusDisplay}`;
 
     if (node.taskId === highlightTaskId) {
         taskLink = `<strong>${taskLink} (Current Task)</strong>`;
