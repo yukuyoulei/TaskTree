@@ -600,9 +600,9 @@ function showSuccess(message) {
 // --- Task Detail Page: Relationship Management & Tree View ---
 
 async function loadTaskRelationships(taskId) {
-    const relationshipsListDiv = document.getElementById("task-relationships-list");
+    const relationshipsListDiv = document.getElementById("current-relations-list");
     if (!relationshipsListDiv) {
-        console.warn("Element with ID 'task-relationships-list' not found.");
+        console.warn("Element with ID 'current-relations-list' not found.");
         return;
     }
     relationshipsListDiv.innerHTML = "<p>Loading relationships...</p>";
@@ -660,9 +660,9 @@ async function confirmDeleteRelationship(taskId, relationshipId) {
 }
 
 async function loadTaskTree(taskId) {
-    const treeViewDiv = document.getElementById("task-tree-view");
+    const treeViewDiv = document.getElementById("task-tree-container");
     if (!treeViewDiv) {
-        console.warn("Element with ID 'task-tree-view' not found.");
+        console.warn("Element with ID 'task-tree-container' not found.");
         return;
     }
     treeViewDiv.innerHTML = "<p>Loading task tree...</p>";
