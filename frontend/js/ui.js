@@ -685,8 +685,30 @@ async function loadTaskTree(taskId) {
 function renderTaskTreeNode(node, parentElement, level, highlightTaskId) {
     const listItem = document.createElement("li");
     let taskDisplay = node.title ? node.title : `Task ${node.taskId}`;
+    
+    // 为不同状态设置不同的颜色
+    let statusColor = "";
+    if (node.status) {
+        switch(node.status) {
+            case "ToDo":
+                statusColor = "color: blue;";
+                break;
+            case "InProgress":
+                statusColor = "color: orange;";
+                break;
+            case "Done":
+                statusColor = "color: green;";
+                break;
+            case "Cancelled":
+                statusColor = "color: red;";
+                break;
+            default:
+                statusColor = "";
+        }
+    }
+    
     let statusDisplay = node.status ? ` [${node.status}]` : "";
-    let taskLink = `<a href=\"task-detail.html?id=${node.taskId}\">${taskDisplay}</a>${statusDisplay}`;
+    let taskLink = `<a href=\"task-detail.html?id=${node.taskId}\" style=\"${statusColor}\">${taskDisplay}</a>${statusDisplay}`;
 
     if (node.taskId === highlightTaskId) {
         taskLink = `<strong>${taskLink} (Current Task)</strong>`;
