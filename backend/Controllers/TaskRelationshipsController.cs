@@ -187,6 +187,7 @@ namespace TaskManagerAPI.Controllers
 
             var treeRoot = MapTaskToTreeDto(task);
             await LoadChildrenRecursive(treeRoot, new HashSet<int>());
+            await LoadParentsRecursive(treeRoot, new HashSet<int>());
             return Ok(treeRoot);
         }
 
