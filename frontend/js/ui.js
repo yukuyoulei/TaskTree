@@ -669,7 +669,26 @@ async function loadTaskTree(taskId) {
     try {
         const treeData = await getTaskTree(taskId);
         if (treeData && treeData.taskId) {
-            treeViewDiv.innerHTML = "<h4>Task Hierarchy (Subtasks):</h4>";
+            treeViewDiv.innerHTML = "";
+            
+            // 显示父任务
+            if (treeData.parents && treeData.parents.length > 0) {
+                const parentHeader = document.createElement("h4");
+                parentHeader.textContent = "父任务:";
+                treeViewDiv.appendChild(parentHeader);
+                
+                const parentUl = document.createElement("ul");
+                treeData.parents.forEach(parentNode => {
+                    renderTaskTreeNode(parentNode, parentUl, 0, parseInt(taskId));
+                });
+                treeViewDiv.appendChild(parentUl);
+            }
+            
+            // 显示子任务
+            const childrenHeader = document.createElement("h4");
+            childrenHeader.textContent = "子任务:";
+            treeViewDiv.appendChild(childrenHeader);
+            
             const ul = document.createElement("ul");
             renderTaskTreeNode(treeData, ul, 0, parseInt(taskId));
             treeViewDiv.appendChild(ul);
@@ -688,30 +707,36 @@ function renderTaskTreeNode(node, parentElement, level, highlightTaskId) {
     
     // 为不同状态设置不同的颜色
     let statusColor = "";
+    let statusText = "";
     if (node.status) {
         switch(node.status) {
             case "ToDo":
                 statusColor = "color: blue;";
+                statusText = "待办";
                 break;
             case "InProgress":
                 statusColor = "color: orange;";
+                statusText = "进行中";
                 break;
             case "Done":
                 statusColor = "color: green;";
+                statusText = "已完成";
                 break;
             case "Cancelled":
                 statusColor = "color: red;";
+                statusText = "已取消";
                 break;
             default:
                 statusColor = "";
+                statusText = node.status;
         }
     }
     
-    let statusDisplay = node.status ? ` [${node.status}]` : "";
+    let statusDisplay = statusText ? ` [${statusText}]` : "";
     let taskLink = `<a href=\"task-detail.html?id=${node.taskId}\" style=\"${statusColor}\">${taskDisplay}</a>${statusDisplay}`;
 
     if (node.taskId === highlightTaskId) {
-        taskLink = `<strong>${taskLink} (Current Task)</strong>`;
+        taskLink = `<strong>${taskLink} (当前任务)</strong>`;
     }
     listItem.innerHTML = taskLink;
     listItem.style.marginLeft = `${level * 20}px`;
