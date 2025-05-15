@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务列表 - 任务管理系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>任务管理系统</h1>
+        <nav>
+            <a href="index.html">首页</a>
+            <a href="task-list.html">任务列表</a>
+            <a href="user-management.html">用户管理</a>
+            <span id="user-info"></span>
+            <button id="logout-button" style="display:none;">登出</button>
+        </nav>
+    </header>
+    <main>
+        <h2>任务列表</h2>
+        <button id="create-task-button">创建新任务</button>
+        <div id="task-filters">
+            <!-- 筛选器将在这里添加 -->
+        </div>
+        <table id="task-table">
+            <thead>
+                <tr>
+                    <th>标题</th>
+                    <th>负责人</th>
+                    <th>状态</th>
+                    <th>优先级</th>
+                    <th>截止日期</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="task-list-body">
+                <!-- 任务将在这里动态加载 -->
+            </tbody>
+        </table>
+        <div id="pagination">
+            <!-- 分页控件将在这里添加 -->
+        </div>
+
+        <!-- 创建/编辑任务的模态框 (初步结构) -->
+        <div id="task-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 id="modal-title">创建任务</h3>
+                <form id="task-form">
+                    <input type="hidden" id="task-id" name="taskId">
+                    <div>
+                        <label for="task-title">标题:</label>
+                        <input type="text" id="task-title" name="title" required>
+                    </div>
+                    <div>
+                        <label for="task-content">内容:</label>
+                        <textarea id="task-content" name="content"></textarea>
+                    </div>
+                    <div>
+                        <label for="task-assignees">负责人:</label>
+                        <select id="task-assignees" name="assigneeIds" multiple>
+                            <!-- 用户列表将在这里动态加载 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-status">状态:</label>
+                        <select id="task-status" name="status" required>
+                            <!-- 状态选项将在这里动态加载 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-priority">优先级:</label>
+                        <select id="task-priority" name="priority">
+                            <!-- 优先级选项将在这里动态加载 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-due-date">截止日期:</label>
+                        <input type="datetime-local" id="task-due-date" name="dueDate">
+                    </div>
+                    <button type="submit">保存</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 任务管理系统</p>
+    </footer>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务详情 - 任务管理系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- 引入树状图库的CSS (示例，实际库可能不同) -->
+    <!-- <link rel="stylesheet" href="libs/js-tree/themes/default/style.min.css"> -->
+</head>
+<body>
+    <header>
+        <h1>任务管理系统</h1>
+        <nav>
+            <a href="index.html">首页</a>
+            <a href="task-list.html">任务列表</a>
+            <a href="user-management.html">用户管理</a>
+            <span id="user-info"></span>
+            <button id="logout-button" style="display:none;">登出</button>
+        </nav>
+    </header>
+    <main>
+        <h2 id="task-detail-title">任务详情</h2>
+        <div id="task-details-content">
+            <p><strong>ID:</strong> <span id="detail-task-id"></span></p>
+            <p><strong>标题:</strong> <span id="detail-task-title"></span></p>
+            <p><strong>内容:</strong> <pre id="detail-task-content"></pre></p>
+            <p><strong>负责人:</strong> <span id="detail-task-assignees"></span></p>
+            <p><strong>状态:</strong> <span id="detail-task-status"></span></p>
+            <p><strong>优先级:</strong> <span id="detail-task-priority"></span></p>
+            <p><strong>创建者:</strong> <span id="detail-task-creator"></span></p>
+            <p><strong>创建时间:</strong> <span id="detail-task-created-at"></span></p>
+            <p><strong>最后修改时间:</strong> <span id="detail-task-updated-at"></span></p>
+            <p><strong>截止日期:</strong> <span id="detail-task-due-date"></span></p>
+            <p><strong>完成时间:</strong> <span id="detail-task-completed-at"></span></p>
+        </div>
+
+        <h3>关联任务树状图</h3>
+        <div id="task-tree-container">
+            <!-- 树状图将在这里渲染 -->
+        </div>
+        
+        <button id="edit-task-button">编辑任务</button>
+        <button id="delete-task-button">删除任务</button>
+        <button id="manage-relations-button">管理关联关系</button>
+        <!-- Task Modal (for Add/Edit) -->
+        <div id="task-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeTaskModal()">&times;</span> <!-- 确保 closeTaskModal() 在 ui.js 中定义 -->
+                <h3 id="modal-title">编辑任务</h3>
+                <form id="task-form">
+                    <input type="hidden" id="task-id" name="taskId">
+                    <div>
+                        <label for="title">标题:</label>
+                        <input type="text" id="task-title" name="title" required>
+                    </div>
+                    <div>
+                        <label for="content">内容:</label>
+                        <textarea id="task-content" name="content" required></textarea>
+                    </div>
+                    <div>
+                        <label for="assignee-select">负责人:</label>
+                        <select id="assignee-select" name="assigneeIds" multiple>
+                            <!-- 用户选项将由JS动态填充 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status-select">状态:</label>
+                        <select id="task-status" name="status">
+                            <!-- 状态选项将由JS动态填充 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="priority-select">优先级:</label>
+                        <select id="task-priority" name="priority">
+                            <!-- 优先级选项将由JS动态填充 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="due-date">截止日期:</label>
+                        <input type="date" id="task-due-date" name="dueDate">
+                    </div>
+                    <button type="submit">保存任务</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 管理关联关系的模态框 (初步结构) -->
+        <div id="relations-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3>管理任务关联</h3>
+                <form id="relations-form">
+                    <div>
+                        <label for="related-task-id">关联任务ID:</label>
+                        <input type="text" id="related-task-id" name="relatedTaskId" placeholder="输入要关联的任务ID">
+                    </div>
+                    <div>
+                        <label for="relationship-type">关联类型:</label>
+                        <select id="relationship-type" name="relationshipType">
+                            <option value="parent">设为父任务</option>
+                            <option value="child">设为子任务</option>
+                            <option value="related">设为相关任务</option>
+                        </select>
+                    </div>
+                    <button type="submit">添加关联</button>
+                </form>
+                <h4>当前关联:</h4>
+                <ul id="current-relations-list">
+                    <!-- 当前关联将在这里列出 -->
+                </ul>
+            </div>
+        </div>
+
+    </main>
+    <footer>
+        <p>&copy; 2025 任务管理系统</p>
+    </footer>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <!-- 引入树状图库的JS (示例) -->
+    <!-- <script src="libs/js-tree/jstree.min.js"></script> --> 
+    <script src="js/main.js"></script>
+</body>
+</html>

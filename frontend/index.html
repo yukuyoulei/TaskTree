@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务管理系统 - 首页</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>任务管理系统</h1>
+        <nav>
+            <a href="index.html">首页</a>
+            <a href="task-list.html">任务列表</a>
+            <a href="user-management.html">用户管理</a>
+            <span id="user-info"></span>
+            <button id="logout-button" style="display:none;">登出</button>
+        </nav>
+    </header>
+    <main>
+        <section id="login-section">
+            <h2>登录</h2>
+            <form id="login-form">
+                <div>
+                    <label for="username">用户名:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password">密码:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">登录</button>
+            </form>
+            <p>如果是首次使用，请联系管理员注册。</p>
+        </section>
+        <section id="welcome-section" style="display:none;">
+            <h2>欢迎, <span id="welcome-username"></span>!</h2>
+            <p>请通过导航栏访问不同功能。</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 任务管理系统</p>
+    </footer>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

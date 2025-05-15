@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 任务管理系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>任务管理系统</h1>
+        <nav>
+            <a href="index.html">首页</a>
+            <a href="task-list.html">任务列表</a>
+            <a href="user-management.html">用户管理</a>
+            <span id="user-info"></span>
+            <button id="logout-button" style="display:none;">登出</button>
+        </nav>
+    </header>
+    <main>
+        <h2>用户管理</h2>
+        <button id="register-user-button">代注册新用户</button>
+        <table id="user-table">
+            <thead>
+                <tr>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>真实姓名</th>
+                    <th>角色</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="user-list-body">
+                <!-- 用户列表将在这里动态加载 -->
+            </tbody>
+        </table>
+
+        <!-- 代注册/编辑用户的模态框 (初步结构) -->
+        <div id="user-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 id="user-modal-title">代注册新用户</h3>
+                <form id="user-form">
+                    <input type="hidden" id="user-id" name="userId">
+                    <div>
+                        <label for="reg-username">用户名:</label>
+                        <input type="text" id="reg-username" name="username" required>
+                    </div>
+                    <div>
+                        <label for="reg-password">密码:</label>
+                        <input type="password" id="reg-password" name="password" required>
+                    </div>
+                    <div>
+                        <label for="reg-email">邮箱:</label>
+                        <input type="email" id="reg-email" name="email">
+                    </div>
+                    <div>
+                        <label for="reg-realname">真实姓名:</label>
+                        <input type="text" id="reg-realname" name="realName">
+                    </div>
+                    <div>
+                        <label for="reg-role">角色:</label>
+                        <select id="reg-role" name="role" required>
+                            <option value="User">普通用户</option>
+                            <option value="Admin">管理员</option> <!-- 仅管理员可见此选项 -->
+                        </select>
+                    </div>
+                    <button type="submit">保存</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+    <footer>
+        <p>&copy; 2025 任务管理系统</p>
+    </footer>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
