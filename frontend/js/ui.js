@@ -176,7 +176,7 @@ function initializeUI() {
         try {
             // This API call needs to be robust. The current api.js `addTaskRelationship` is a placeholder.
             // It should likely be: await addRelationship({ parentTaskId: parentId, childTaskId: childId, relationshipType: typeForAPI });
-            await addTaskRelationship(parentId, childId, typeForAPI); // Adjust api.js if this is not the signature
+            await addTaskRelationship(currentTaskId, { relatedTaskId: relatedTaskId, relationshipType: relationshipType });
             showSuccess("Relationship added!");
             loadTaskRelationships(currentTaskId); // Refresh the list
             loadTaskTree(currentTaskId); // Refresh tree
