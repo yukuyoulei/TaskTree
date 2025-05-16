@@ -140,52 +140,7 @@ function initializeUI() {
     });
 
     const relationsForm = document.getElementById("relations-form");
-    if(relationsForm) relationsForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const currentTaskId = document.getElementById("detail-task-id").textContent;
-        const relatedTaskId = document.getElementById("related-task-id").value;
-        const relationshipType = document.getElementById("relationship-type").value; // 'parent', 'child', 'related'
-        
-        let parentId, childId, typeForAPI;
-
-        if (relationshipType === "parent") { // User wants to set relatedTaskId as parent of currentTaskId
-            parentId = relatedTaskId;
-            childId = currentTaskId;
-            typeForAPI = "Subtask"; // Or whatever your backend expects for parent-child
-        } else if (relationshipType === "child") { // User wants to set relatedTaskId as child of currentTaskId
-            parentId = currentTaskId;
-            childId = relatedTaskId;
-            typeForAPI = "Subtask";
-        } else { // "related"
-            // For a generic 'related' type, you might have a different structure or just pick one as parent/child arbitrarily
-            // Or your API might handle a specific 'Related' type directly.
-            // For now, let's assume a generic relationship where order might not matter or is handled by backend
-            // This part needs to align with your `POST /api/task-relationships` API structure
-            // Option 1: Send as is, backend figures it out
-            // Option 2: API expects parentId and childId specifically
-            // For simplicity, let's assume the API can take { taskId1, taskId2, type: "Related" }
-            // Or we use the Parent/Child structure for the generic "Related" type too.
-            // Let's use the Parent/Child for now, and the API call `addTaskRelationship` needs to be flexible or specific.
-            // This example assumes addTaskRelationship sends { parentTaskId, childTaskId, relationshipType }
-            // For a simple "Related", we might just use currentTaskId as parent and relatedTaskId as child.
-            parentId = currentTaskId;
-            childId = relatedTaskId;
-            typeForAPI = "Related";
-        }
-
-        try {
-            // This API call needs to be robust. The current api.js `addTaskRelationship` is a placeholder.
-            // It should likely be: await addRelationship({ parentTaskId: parentId, childTaskId: childId, relationshipType: typeForAPI });
-            await addTaskRelationship(currentTaskId, { relatedTaskId: relatedTaskId, relationshipType: relationshipType });
-            showSuccess("Relationship added!");
-            loadTaskRelationships(currentTaskId); // Refresh the list
-            loadTaskTree(currentTaskId); // Refresh tree
-            document.getElementById("related-task-id").value = "";
-        } catch (error) {
-            showError(error.message || "Failed to add relationship.");
-        }
-    });
-
+    if(relationsForm) relationsForm.addEventListener("submit", handleRelationsFormSubmit);
 }
 // --- Task List Page Functions ---
 async function loadTasks() {
