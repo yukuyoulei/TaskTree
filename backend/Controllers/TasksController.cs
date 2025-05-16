@@ -42,11 +42,12 @@ namespace TaskManagerAPI.Controllers
                                                 .Include(t => t.Assignees)!
                                                 .ThenInclude(ta => ta.User);
 
-            // Filter: only show tasks created by the user, assigned to the user, or all if admin
-            if (currentUserRole != "Admin")
-            {
-                query = query.Where(t => t.CreatorId == currentUserId || t.Assignees!.Any(ta => ta.UserId == currentUserId));
-            }
+            // 允许所有已登录用户查看任务列表，但非管理员只能看到与自己相关的任务
+            // 如果需要限制普通用户只能看到与自己相关的任务，可以取消下面的注释
+            // if (currentUserRole != "Admin")
+            // {
+            //     query = query.Where(t => t.CreatorId == currentUserId || t.Assignees!.Any(ta => ta.UserId == currentUserId));
+            // }
 
             if (!string.IsNullOrEmpty(status))
             {
