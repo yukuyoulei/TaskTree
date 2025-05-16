@@ -5,8 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>任务详情 - 任务管理系统</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- 引入树状图库的CSS (示例，实际库可能不同) -->
-    <!-- <link rel="stylesheet" href="libs/js-tree/themes/default/style.min.css"> -->
+    <style>
+        /* 任务详情页布局优化 */
+        .task-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        
+        .task-content {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #90c2e7;
+        }
+        
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .meta-item {
+            flex: 1 1 200px;
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .meta-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        #task-tree-section {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -20,29 +68,69 @@
         </nav>
     </header>
     <main>
-        <h2 id="task-detail-title">任务详情</h2>
-        <div id="task-details-content">
-            <p><strong>ID:</strong> <span id="detail-task-id"></span></p>
-            <p><strong>标题:</strong> <span id="detail-task-title"></span></p>
-            <p><strong>内容:</strong> <pre id="detail-task-content"></pre></p>
-            <p><strong>负责人:</strong> <span id="detail-task-assignees"></span></p>
-            <p><strong>状态:</strong> <span id="detail-task-status"></span></p>
-            <p><strong>优先级:</strong> <span id="detail-task-priority"></span></p>
-            <p><strong>创建者:</strong> <span id="detail-task-creator"></span></p>
-            <p><strong>创建时间:</strong> <span id="detail-task-created-at"></span></p>
-            <p><strong>最后修改时间:</strong> <span id="detail-task-updated-at"></span></p>
-            <p><strong>截止日期:</strong> <span id="detail-task-due-date"></span></p>
-            <p><strong>完成时间:</strong> <span id="detail-task-completed-at"></span></p>
-        </div>
-
-        <h3>任务树状图</h3>
-        <div id="task-tree-container">
-            <!-- 树状图将在这里渲染 -->
+        <!-- 任务标题 - 单独一行 -->
+        <div class="task-header">
+            <h2 id="task-detail-title">任务详情</h2>
+            <h3 id="detail-task-title" style="margin-top:10px;color:#333;"></h3>
+            <div style="color:#888;font-size:0.9em;">ID: <span id="detail-task-id"></span></div>
         </div>
         
-        <button id="edit-task-button">编辑任务</button>
-        <button id="delete-task-button">删除任务</button>
-        <button id="manage-relations-button">管理关联关系</button>
+        <!-- 任务内容 - 单独一行 -->
+        <div class="task-content">
+            <pre id="detail-task-content" style="white-space:pre-wrap;font-family:inherit;"></pre>
+        </div>
+        
+        <!-- 任务元数据 - 横向排列 -->
+        <div class="task-meta">
+            <div class="meta-item">
+                <strong>负责人</strong>
+                <span id="detail-task-assignees"></span>
+            </div>
+            <div class="meta-item">
+                <strong>状态</strong>
+                <span id="detail-task-status"></span>
+            </div>
+            <div class="meta-item">
+                <strong>优先级</strong>
+                <span id="detail-task-priority"></span>
+            </div>
+            <div class="meta-item">
+                <strong>创建者</strong>
+                <span id="detail-task-creator"></span>
+            </div>
+            <div class="meta-item">
+                <strong>创建时间</strong>
+                <span id="detail-task-created-at"></span>
+            </div>
+            <div class="meta-item">
+                <strong>最后修改</strong>
+                <span id="detail-task-updated-at"></span>
+            </div>
+            <div class="meta-item">
+                <strong>截止日期</strong>
+                <span id="detail-task-due-date"></span>
+            </div>
+            <div class="meta-item">
+                <strong>完成时间</strong>
+                <span id="detail-task-completed-at"></span>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 - 横向排列 -->
+        <div class="task-actions">
+            <button id="edit-task-button">编辑任务</button>
+            <button id="delete-task-button">删除任务</button>
+            <button id="manage-relations-button">管理关联关系</button>
+        </div>
+
+        <!-- 任务树状图 - 放在底部 -->
+        <div id="task-tree-section">
+            <h3>任务树状图</h3>
+            <div id="task-tree-container">
+                <!-- 树状图将在这里渲染 -->
+            </div>
+        </div>
+        
         <!-- Task Modal (for Add/Edit) -->
         <div id="task-modal" class="modal" style="display:none;">
             <div class="modal-content">

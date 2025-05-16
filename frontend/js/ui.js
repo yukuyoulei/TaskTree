@@ -41,10 +41,11 @@ function initializeUI() {
             event.preventDefault();
             const formData = new FormData(event.target);
             const taskId = formData.get("taskId");
+            const assigneeSelect = document.getElementById("task-assignees") || document.getElementById("assignee-select");
             const taskData = {
                 title: formData.get("title"),
                 content: formData.get("content"),
-                assigneeIds: Array.from(document.getElementById("task-assignees").selectedOptions).map(opt => opt.value),
+                assigneeIds: assigneeSelect ? Array.from(assigneeSelect.selectedOptions).map(opt => opt.value) : [],
                 status: formData.get("status"),
                 priority: formData.get("priority"),
                 dueDate: formData.get("dueDate") ? new Date(formData.get("dueDate")).toISOString() : null,
@@ -212,8 +213,12 @@ async function populateFilterOptions() {
 }
 
 async function populateAssigneesDropdown(selectedAssigneeIds = []) {
-    const assigneesSelect = document.getElementById("task-assignees");
-    if (!assigneesSelect) return;
+    // 查找负责人下拉列表，支持两种可能的ID
+    const assigneesSelect = document.getElementById("task-assignees") || document.getElementById("assignee-select");
+    if (!assigneesSelect) {
+        console.error("无法找到负责人下拉列表元素");
+        return;
+    }
     assigneesSelect.innerHTML = "";
     try {
         const usersResponse = await getAllUsersForAssigneeSelection(); 
@@ -280,19 +285,23 @@ async function openTaskModal(taskId = null) {
             
             // Set selected status
             const statusSelect = document.getElementById("task-status");
-            for (let i = 0; i < statusSelect.options.length; i++) {
-                if (statusSelect.options[i].value === task.status) {
-                    statusSelect.options[i].selected = true;
-                    break;
+            if (statusSelect && task.status) {
+                for (let i = 0; i < statusSelect.options.length; i++) {
+                    if (statusSelect.options[i].value === task.status) {
+                        statusSelect.options[i].selected = true;
+                        break;
+                    }
                 }
             }
             
             // Set selected priority
             const prioritySelect = document.getElementById("task-priority");
-            for (let i = 0; i < prioritySelect.options.length; i++) {
-                if (prioritySelect.options[i].value === task.priority) {
-                    prioritySelect.options[i].selected = true;
-                    break;
+            if (prioritySelect && task.priority) {
+                for (let i = 0; i < prioritySelect.options.length; i++) {
+                    if (prioritySelect.options[i].value === task.priority) {
+                        prioritySelect.options[i].selected = true;
+                        break;
+                    }
                 }
             }
             
@@ -307,8 +316,8 @@ async function openTaskModal(taskId = null) {
             }
             
             // Set selected assignees
-            const assigneeSelect = document.getElementById("task-assignees");
-            if (task.assignees && task.assignees.length > 0) {
+            const assigneeSelect = document.getElementById("task-assignees") || document.getElementById("assignee-select");
+            if (assigneeSelect && task.assignees && task.assignees.length > 0) {
                 for (let i = 0; i < assigneeSelect.options.length; i++) {
                     if (task.assignees.some(a => a.userId === assigneeSelect.options[i].value)) {
                         assigneeSelect.options[i].selected = true;
