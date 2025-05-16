@@ -185,11 +185,59 @@ table th {
     min-height: 100px;
 }
 
+/* 树状结构美化 */
 #task-tree-container ul {
-    list-style-type: none;
-    padding-left: 20px;
+  position: relative;
+  padding-left: 20px;
 }
 
+.tree-node {
+  position: relative;
+  padding: 8px 0;
+  line-height: 1.8;
+}
+
+.tree-node::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 15px;
+  width: 10px;
+  border-top: 2px solid #90c2e7;
+}
+
+.tree-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -15px;
+  bottom: 0;
+  height: calc(100% - 14px);
+  border-left: 2px solid #90c2e7;
+}
+
+.tree-node-children {
+  margin-left: 25px;
+  position: relative;
+}
+
+.tree-node a {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tree-node a:hover {
+  background: #e8f4ff;
+  transform: translateX(3px);
+}
+
+.tree-node a::before {
+  content: '📌';
+  margin-right: 8px;
+  opacity: 0.6;
+}
 #task-tree-container li a {
     text-decoration: none;
     color: #337ab7;

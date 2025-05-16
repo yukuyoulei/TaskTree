@@ -515,9 +515,21 @@ async function loadTaskTree(taskId) {
     }
 }
 
-function renderTreeNode(node, parentElement, currentFocusTaskId) {
+function renderTreeNode(node, parentElement, currentFocusTaskId, visited = new Set()) {
+    if (visited.has(node.taskId)) return;
+    visited.add(node.taskId);
     const li = document.createElement("li");
+    li.className = "tree-node";
     let taskLink = document.createElement("a");
+    
+    if (relatedTasks.length > 0) {
+        const ul = document.createElement("ul");
+        ul.className = "tree-node-children";
+        relatedTasks.forEach(relatedTask => {
+            renderTreeNode(relatedTask, ul, currentFocusTaskId, new Set(visited));
+        });
+        li.appendChild(ul);
+    }
     taskLink.href = `task-detail.html?id=${node.taskId}`;
     taskLink.textContent = `${node.title} (ID: ${node.taskId})`;
     if (node.taskId === currentFocusTaskId) {
@@ -525,30 +537,18 @@ function renderTreeNode(node, parentElement, currentFocusTaskId) {
     }
     li.appendChild(taskLink);
 
-    if (node.children && node.children.length > 0) {
+    // 合并父任务和子任务的代码片段
+    const relatedTasksMap = new Map();
+    node.parents && node.parents.forEach(rel => !visited.has(rel.taskId) && relatedTasksMap.set(rel.taskId, rel));
+    node.children && node.children.forEach(rel => !visited.has(rel.taskId) && relatedTasksMap.set(rel.taskId, rel));
+    const relatedTasks = Array.from(relatedTasksMap.values());
+
+    if (relatedTasks.length > 0) {
         const ul = document.createElement("ul");
-        node.children.forEach(child => renderTreeNode(child, ul, currentFocusTaskId));
-        li.appendChild(ul);
-    }
-    if (node.parents && node.parents.length > 0) {
-        // How to display parents in a simple tree might be tricky.
-        // For now, let's add them as a sub-list above, or indicate them.
-        const parentUl = document.createElement("ul");
-        parentUl.style.listStyleType = "square"; // Differentiate
-        node.parents.forEach(parent => {
-            const parentLi = document.createElement("li");
-            let parentLink = document.createElement("a");
-            parentLink.href = `task-detail.html?id=${parent.taskId}`;
-            parentLink.textContent = `(Parent: ${parent.title} - ID: ${parent.taskId})`;
-            parentLi.appendChild(parentLink);
-            parentUl.appendChild(parentLi);
+        relatedTasks.forEach(relatedTask => {
+            renderTreeNode(relatedTask, ul, currentFocusTaskId, new Set(visited));
         });
-        // Prepend parent list to the current li or its parentElement
-        if(li.firstChild) {
-            li.insertBefore(parentUl, li.firstChild);
-        } else {
-            li.appendChild(parentUl);
-        }
+        li.appendChild(ul);
     }
     parentElement.appendChild(li);
 }
@@ -672,9 +672,9 @@ async function loadTaskTree(taskId) {
             
             // 显示父任务
             if (treeData.parents && treeData.parents.length > 0) {
-                const parentHeader = document.createElement("h4");
-                parentHeader.textContent = "父任务:";
-                treeViewDiv.appendChild(parentHeader);
+                // const parentHeader = document.createElement("h4");
+                // parentHeader.textContent = "父任务:";
+                // treeViewDiv.appendChild(parentHeader);
                 
                 const parentUl = document.createElement("ul");
                 treeData.parents.forEach(parentNode => {
@@ -684,12 +684,15 @@ async function loadTaskTree(taskId) {
             }
             
             // 显示子任务
-            const childrenHeader = document.createElement("h4");
-            childrenHeader.textContent = "子任务:";
-            treeViewDiv.appendChild(childrenHeader);
+            // const childrenHeader = document.createElement("h4");
+            // childrenHeader.textContent = "子任务:";
+            // treeViewDiv.appendChild(childrenHeader);
             
             const ul = document.createElement("ul");
-            renderTaskTreeNode(treeData, ul, 0, parseInt(taskId));
+            let level = 0;
+            if (treeData.parents)
+                level += treeData.parents.length;
+            renderTaskTreeNode(treeData, ul, level, parseInt(taskId));
             treeViewDiv.appendChild(ul);
         } else {
             treeViewDiv.innerHTML = "<p>No tree data available or task not found.</p>";
