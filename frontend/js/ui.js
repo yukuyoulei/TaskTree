@@ -101,7 +101,7 @@ function initializeUI() {
                     // await updateUser(userId, userData); // TODO: Implement updateUser in api.js and backend
                     showSuccess("User updated successfully! (Placeholder)");
                 } else {
-                    await registerUser(userData); // Uses admin registration endpoint
+                    await registerUserByAdmin(userData); // Uses admin registration endpoint
                     showSuccess("User registered successfully!");
                 }
                 closeUserModal();
