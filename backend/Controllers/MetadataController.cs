@@ -13,17 +13,17 @@ namespace TaskManagerAPI.Controllers
         // These could be read from a configuration file or a database in a more complex scenario
         private static readonly List<string> TaskStatuses = new List<string>
         {
-            "ToDo",
-            "InProgress",
-            "Done",
-            "Cancelled"
+            "待办",
+            "进行中",
+            "已完成",
+            "已取消"
         };
 
         private static readonly List<string> TaskPriorities = new List<string>
         {
-            "High",
-            "Medium",
-            "Low"
+            "高",
+            "中",
+            "低"
         };
 
         [HttpGet("task-statuses")]

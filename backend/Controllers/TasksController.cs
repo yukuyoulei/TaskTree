@@ -127,15 +127,8 @@ namespace TaskManagerAPI.Controllers
                 return NotFound();
             }
 
-            // Authorization: User must be Admin, Creator, or Assignee to view task details
-            bool isAuthorized = currentUserRole == "Admin" || 
-                                task.CreatorId == currentUserId || 
-                                (task.Assignees != null && task.Assignees.Any(ta => ta.UserId == currentUserId));
-
-            if (!isAuthorized)
-            {
-                return Forbid();
-            }
+            // 允许所有已登录用户查看任务详情
+            // 原来的权限检查已被移除，现在所有用户都可以查看任务详情
 
             return Ok(new TaskResponseDto
             {
@@ -227,15 +220,10 @@ namespace TaskManagerAPI.Controllers
                 return NotFound();
             }
 
+            // 允许所有已登录用户更新任务
+            // 获取当前用户ID仅用于记录
             var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-            bool isCreator = taskToUpdate.CreatorId == currentUserId;
-            bool isAssignee = taskToUpdate.Assignees != null && taskToUpdate.Assignees.Any(a => a.UserId == currentUserId);
-
-            if (currentUserRole != "Admin" && !isCreator && !isAssignee)
-            {
-                return Forbid(); // Only admin, creator or assignee can update
-            }
 
             if (taskUpdateDto.Title != null) taskToUpdate.Title = taskUpdateDto.Title;
             if (taskUpdateDto.Content != null) taskToUpdate.Content = taskUpdateDto.Content;
@@ -294,6 +282,8 @@ namespace TaskManagerAPI.Controllers
                 return NotFound();
             }
 
+            // 允许所有已登录用户删除任务
+            // 获取当前用户ID仅用于记录
             var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
             bool isCreator = taskToDelete.CreatorId == currentUserId;

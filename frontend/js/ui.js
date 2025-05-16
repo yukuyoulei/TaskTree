@@ -184,8 +184,8 @@ async function populateFilterOptions() {
     const taskPrioritySelect = document.getElementById("task-priority");
 
     try {
-        const statuses = await getTaskStatuses() || ["ToDo", "InProgress", "Done", "Cancelled"]; // Fallback
-        const priorities = await getTaskPriorities() || ["High", "Medium", "Low"]; // Fallback
+        const statuses = await getTaskStatuses() || ["待办", "进行中", "已完成", "已取消"]; // 中文后备选项
+        const priorities = await getTaskPriorities() || ["高", "中", "低"]; // 中文后备选项
 
         if (taskStatusSelect) {
             statuses.forEach(status => {
@@ -721,19 +721,19 @@ function renderTaskTreeNode(node, parentElement, level, highlightTaskId) {
     let statusText = "";
     if (node.status) {
         switch(node.status) {
-            case "ToDo":
+            case "待办":
                 statusColor = "color: blue;";
                 statusText = "待办";
                 break;
-            case "InProgress":
+            case "进行中":
                 statusColor = "color: orange;";
                 statusText = "进行中";
                 break;
-            case "Done":
+            case "已完成":
                 statusColor = "color: green;";
                 statusText = "已完成";
                 break;
-            case "Cancelled":
+            case "已取消":
                 statusColor = "color: red;";
                 statusText = "已取消";
                 break;

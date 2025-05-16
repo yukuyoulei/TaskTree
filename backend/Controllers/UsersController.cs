@@ -74,7 +74,7 @@ namespace TaskManagerAPI.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin,User")] 
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var usersQuery = _context.Users
@@ -102,13 +102,13 @@ namespace TaskManagerAPI.Controllers
         [Authorize(Roles = "Admin,User")] 
         public async Task<ActionResult<UserResponseDto>> GetUserById(int userId)
         {
-            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+            //var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
 
-            if (currentUserRole != "Admin" && currentUserIdStr != userId.ToString())
-            {
-                return Forbid(); 
-            }
+            //if (currentUserRole != "Admin" && currentUserIdStr != userId.ToString())
+            //{
+            //    return Forbid(); 
+            //}
 
             var user = await _context.Users.FindAsync(userId);
 
