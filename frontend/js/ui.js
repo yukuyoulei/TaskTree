@@ -250,33 +250,77 @@ async function openTaskModal(taskId = null) {
     const modal = document.getElementById("task-modal");
     const modalTitle = document.getElementById("modal-title");
     const taskForm = document.getElementById("task-form");
+    const taskIdField = document.getElementById("task-id");
+    
+    // Clear form fields
     taskForm.reset();
-    document.getElementById("task-id").value = "";
-    await populateFilterOptions(); // Ensure dropdowns are populated
-
+    
+    // Clear existing options in status and priority dropdowns before adding new ones
+    const taskStatusSelect = document.getElementById("task-status");
+    const taskPrioritySelect = document.getElementById("task-priority");
+    if (taskStatusSelect) taskStatusSelect.innerHTML = "";
+    if (taskPrioritySelect) taskPrioritySelect.innerHTML = "";
+    
+    // Set modal title based on operation
+    modalTitle.textContent = taskId ? "编辑任务" : "创建任务";
+    
+    // Populate assignee dropdown
+    await populateAssigneesDropdown(); // Changed from populateUserDropdown
+    
+    // Populate status and priority dropdowns
+    await populateFilterOptions();
+    
+    // If editing, load task data
     if (taskId) {
-        modalTitle.textContent = "Edit Task";
+        taskIdField.value = taskId;
         try {
-            const task = await getTaskDetails(taskId);
-            document.getElementById("task-id").value = task.taskId;
+            const task = await getTaskDetails(taskId); // Changed from getTaskById
             document.getElementById("task-title").value = task.title;
-            document.getElementById("task-content").value = task.content || "";
-            document.getElementById("task-status").value = task.status;
-            document.getElementById("task-priority").value = task.priority || "";
-            if (task.dueDate) {
-                document.getElementById("task-due-date").value = task.dueDate.substring(0, 16); // Format for datetime-local
+            document.getElementById("task-content").value = task.content;
+            
+            // Set selected status
+            const statusSelect = document.getElementById("task-status");
+            for (let i = 0; i < statusSelect.options.length; i++) {
+                if (statusSelect.options[i].value === task.status) {
+                    statusSelect.options[i].selected = true;
+                    break;
+                }
             }
-            const assigneeIds = task.assignees ? task.assignees.map(a => a.userId) : [];
-            await populateAssigneesDropdown(assigneeIds);
-
+            
+            // Set selected priority
+            const prioritySelect = document.getElementById("task-priority");
+            for (let i = 0; i < prioritySelect.options.length; i++) {
+                if (prioritySelect.options[i].value === task.priority) {
+                    prioritySelect.options[i].selected = true;
+                    break;
+                }
+            }
+            
+            // Set due date if exists
+            if (task.dueDate) {
+                // Convert ISO date to local datetime-local format
+                const dueDate = new Date(task.dueDate);
+                const localDueDate = new Date(dueDate.getTime() - dueDate.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+                document.getElementById("task-due-date").value = localDueDate;
+            }
+            
+            // Set selected assignees
+            const assigneeSelect = document.getElementById("task-assignees");
+            if (task.assignees && task.assignees.length > 0) {
+                for (let i = 0; i < assigneeSelect.options.length; i++) {
+                    if (task.assignees.some(a => a.userId === assigneeSelect.options[i].value)) {
+                        assigneeSelect.options[i].selected = true;
+                    }
+                }
+            }
         } catch (error) {
-            showError(error.message || "Failed to load task details for editing.");
-            return;
+            showError("Failed to load task details: " + error.message);
         }
-    } else {
-        modalTitle.textContent = "Create Task";
-        await populateAssigneesDropdown();
     }
+    
+    // Show modal
     modal.style.display = "block";
 }
 
