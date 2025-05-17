@@ -281,7 +281,15 @@ async function openTaskModal(taskId = null) {
         try {
             const task = await getTaskDetails(taskId); // Changed from getTaskById
             document.getElementById("task-title").value = task.title;
-            document.getElementById("task-content").value = task.content;
+            
+            // 设置富文本编辑器内容
+            if (typeof Quill !== 'undefined') {
+                const quill = Quill.find(document.querySelector('#editor-container'));
+                if (quill) {
+                    quill.root.innerHTML = task.content || '';
+                }
+            }
+            document.getElementById("task-content").value = task.content || '';
             
             // Set selected status
             const statusSelect = document.getElementById("task-status");
@@ -433,7 +441,7 @@ async function loadTaskDetails() {
         document.getElementById("detail-task-id").textContent = task.taskId;
         document.getElementById("task-detail-title").textContent = `任务详情: ${task.title}`;
         document.getElementById("detail-task-title").textContent = task.title;
-        document.getElementById("detail-task-content").textContent = task.content || "N/A";
+        document.getElementById("detail-task-content").innerHTML = task.content || "N/A";
         document.getElementById("detail-task-assignees").textContent = task.assignees ? task.assignees.map(a => a.username).join(", ") : "N/A";
         document.getElementById("detail-task-status").textContent = task.status;
         document.getElementById("detail-task-priority").textContent = task.priority || "N/A";
