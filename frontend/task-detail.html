@@ -242,8 +242,61 @@
             // 监听表单提交事件
             const taskForm = document.getElementById('task-form');
             if (taskForm) {
-                taskForm.addEventListener('submit', function() {
+                taskForm.addEventListener('submit', async function(e) {
+                    e.preventDefault(); // 阻止表单默认提交行为
                     document.getElementById('task-content').value = quill.root.innerHTML;
+                    
+                    // 获取表单数据
+                    const formData = new FormData(taskForm);
+                    const taskData = {};
+                    for (let [key, value] of formData.entries()) {
+                        // 跳过taskId，它不应该包含在请求体中
+                        if (key !== 'taskId') {
+                            // 处理日期字段
+                            if (key === 'dueDate' && value) {
+                                // 确保日期格式正确 (ISO 8601)
+                                taskData[key] = new Date(value).toISOString();
+                            } else {
+                                taskData[key] = value;
+                            }
+                        }
+                    }
+                    
+                    // 处理多选的负责人
+                    const assigneeSelect = document.getElementById('assignee-select');
+                    if (assigneeSelect) {
+                        // 确保assigneeIds是一个整数数组
+                        taskData.assigneeIds = Array.from(assigneeSelect.selectedOptions).map(option => parseInt(option.value));
+                    }
+                    
+                    console.log('提交的任务数据:', JSON.stringify(taskData));
+                    
+                    // 保存任务
+                    const taskId = document.getElementById('task-id').value;
+                    if (taskId) {
+                        // 更新现有任务
+                        try {
+                            await updateTask(taskId, taskData);
+                            showSuccess('任务更新成功！');
+                            closeTaskModal(); // 关闭模态框
+                            loadTaskDetails(); // 重新加载任务详情
+                        } catch (error) {
+                            console.error('更新任务失败:', error);
+                            showError('更新任务失败: ' + error.message);
+                        }
+                    } else {
+                        // 创建新任务
+                        try {
+                            const response = await createTask(taskData);
+                            showSuccess('任务创建成功！');
+                            closeTaskModal(); // 关闭模态框
+                            // 重定向到新创建的任务详情页
+                            window.location.href = `task-detail.html?id=${response.taskId}`;
+                        } catch (error) {
+                            console.error('创建任务失败:', error);
+                            showError('创建任务失败: ' + error.message);
+                        }
+                    }
                 });
             }
             

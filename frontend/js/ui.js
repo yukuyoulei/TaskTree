@@ -257,22 +257,32 @@ async function openTaskModal(taskId = null) {
     const taskForm = document.getElementById("task-form");
     const taskIdField = document.getElementById("task-id");
     
-    // Clear form fields
-    taskForm.reset();
+    // 设置模态框标题
+    modalTitle.textContent = taskId ? "编辑任务" : "创建任务";
     
-    // Clear existing options in status and priority dropdowns before adding new ones
+    // 只有在创建新任务时才重置表单
+    if (!taskId) {
+        taskForm.reset();
+        
+        // 如果有富文本编辑器，清空内容
+        if (typeof Quill !== 'undefined') {
+            const quill = Quill.find(document.querySelector('#editor-container'));
+            if (quill) {
+                quill.root.innerHTML = '';
+            }
+        }
+    }
+    
+    // 清空下拉选项，准备重新填充
     const taskStatusSelect = document.getElementById("task-status");
     const taskPrioritySelect = document.getElementById("task-priority");
     if (taskStatusSelect) taskStatusSelect.innerHTML = "";
     if (taskPrioritySelect) taskPrioritySelect.innerHTML = "";
     
-    // Set modal title based on operation
-    modalTitle.textContent = taskId ? "编辑任务" : "创建任务";
-    
-    // Populate assignee dropdown
+    // 填充负责人下拉列表
     await populateAssigneesDropdown(); // Changed from populateUserDropdown
     
-    // Populate status and priority dropdowns
+    // 填充状态和优先级下拉列表
     await populateFilterOptions();
     
     // If editing, load task data
