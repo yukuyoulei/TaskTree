@@ -155,4 +155,9 @@ frontend/
 ## 许可证
 
 本项目采用MIT许可证。详见[LICENSE](LICENSE)文件（[中文版](LICENSE.zh-CN)）。
-![readme](readme/433CA8DC1F33479C97CFA840D02A94D4.png)
+
+![detail](readme/433CA8DC1F33479C97CFA840D02A94D4.png)
+
+![detail](readme/1ea53ba8-8ccb-46b0-9d5c-91446e0c30d2.png)
+
+![detail](readme/63477e0a-f632-4bb2-912c-b1da53371dba.png)
