@@ -25,88 +25,142 @@ namespace TaskManagerAPI.Controllers
 
         // GET: api/tasks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasks(
-            [FromQuery] string? status, 
-            [FromQuery] int? assigneeId, 
-            [FromQuery] int? creatorId,
-            [FromQuery] string? sortBy, // e.g., "dueDate", "priority", "createdAt"
-            [FromQuery] bool ascending = true,
+        public async Task<IActionResult> GetTasks(
+            [FromQuery] string searchText = null,
+            [FromQuery] string status = null,
+            [FromQuery] string priority = null,
+            [FromQuery] int? assigneeId = null,
+            [FromQuery] int? creatorId = null,
+            [FromQuery] string sortBy = null,
+            [FromQuery] bool ascending = false,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-
-            IQueryable<Models.Task> query = _context.Tasks
-                                                .Include(t => t.Creator)
-                                                .Include(t => t.Assignees)!
-                                                .ThenInclude(ta => ta.User);
-
-            // 允许所有已登录用户查看任务列表，但非管理员只能看到与自己相关的任务
-            // 如果需要限制普通用户只能看到与自己相关的任务，可以取消下面的注释
-            // if (currentUserRole != "Admin")
-            // {
-            //     query = query.Where(t => t.CreatorId == currentUserId || t.Assignees!.Any(ta => ta.UserId == currentUserId));
-            // }
-
-            if (!string.IsNullOrEmpty(status))
+            try
             {
-                query = query.Where(t => t.Status == status);
-            }
-            if (assigneeId.HasValue)
-            {
-                query = query.Where(t => t.Assignees!.Any(ta => ta.UserId == assigneeId.Value));
-            }
-            if (creatorId.HasValue)
-            {
-                query = query.Where(t => t.CreatorId == creatorId.Value);
-            }
-
-            // Sorting
-            if (!string.IsNullOrEmpty(sortBy))
-            {
-                switch (sortBy.ToLower())
+                // 获取当前用户ID
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out int userId))
                 {
-                    case "duedate":
-                        query = ascending ? query.OrderBy(t => t.DueDate) : query.OrderByDescending(t => t.DueDate);
-                        break;
-                    case "priority": // Assuming priority can be ordered (e.g. High=1, Medium=2, Low=3)
-                        // This requires a way to map priority string to an orderable value or a more complex sort
-                        // For simplicity, we'll sort by string value, which might not be ideal for High/Medium/Low
-                        query = ascending ? query.OrderBy(t => t.Priority) : query.OrderByDescending(t => t.Priority);
-                        break;
-                    case "createdat":
-                    default:
-                        query = ascending ? query.OrderBy(t => t.CreatedAt) : query.OrderByDescending(t => t.CreatedAt);
-                        break;
+                    return Unauthorized(new { message = "用户未登录或ID无效" });
                 }
-            }
-            else
-            {
-                query = query.OrderByDescending(t => t.CreatedAt); // Default sort
-            }
-            
-            var totalTasks = await query.CountAsync();
-            var tasks = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(t => new TaskResponseDto
-                {
-                    TaskId = t.TaskId,
-                    Title = t.Title,
-                    Content = t.Content,
-                    Status = t.Status,
-                    Priority = t.Priority,
-                    Creator = t.Creator == null ? null : new UserResponseDto { UserId = t.Creator.UserId, Username = t.Creator.Username, Email = t.Creator.Email, RealName = t.Creator.RealName, Role = t.Creator.Role, CreatedAt = t.Creator.CreatedAt },
-                    CreatedAt = t.CreatedAt,
-                    UpdatedAt = t.UpdatedAt,
-                    DueDate = t.DueDate,
-                    CompletedAt = t.CompletedAt,
-                    Assignees = t.Assignees == null ? new List<UserResponseDto>() : t.Assignees.Select(a => new UserResponseDto { UserId = a.User!.UserId, Username = a.User.Username, Email = a.User.Email, RealName = a.User.RealName, Role = a.User.Role, CreatedAt = a.User.CreatedAt }).ToList()
-                })
-                .ToListAsync();
 
-            return Ok(new { Tasks = tasks, TotalCount = totalTasks, Page = page, PageSize = pageSize });
+                // 构建查询
+                var query = _context.Tasks
+                    .Include(t => t.Creator)
+                    .Include(t => t.Assignees)
+                    .ThenInclude(ta => ta.User)
+                    .AsQueryable();
+
+                // 应用标题搜索过滤
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = query.Where(t => t.Title.Contains(searchText));
+                }
+
+                // 应用状态过滤
+                if (!string.IsNullOrWhiteSpace(priority))
+                {
+                    query = query.Where(t => t.Priority == priority);
+                }
+
+                // 应用优先级过滤
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    query = query.Where(t => t.Status == status);
+                }
+
+                // 应用负责人过滤
+                if (assigneeId.HasValue)
+                {
+                    query = query.Where(t => t.Assignees.Any(ta => ta.UserId == assigneeId.Value));
+                }
+
+                // 应用创建者过滤
+                if (creatorId.HasValue)
+                {
+                    query = query.Where(t => t.CreatorId == creatorId.Value);
+                }
+
+                // 应用排序
+                query = ApplySorting(query, sortBy, ascending);
+
+                // 获取总记录数
+                var totalCount = await query.CountAsync();
+
+                // 应用分页
+                var tasks = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // 转换为DTO
+                var taskDtos = tasks.Select(t => new
+                {
+                    id = t.TaskId,
+                    title = t.Title,
+                    content = t.Content,
+                    status = t.Status,
+                    priority = t.Priority,
+                    createdAt = t.CreatedAt,
+                    updatedAt = t.UpdatedAt,
+                    dueDate = t.DueDate,
+                    completedAt = t.CompletedAt,
+                    creator = new
+                    {
+                        id = t.Creator.UserId,
+                        username = t.Creator.Username
+                    },
+                    assignees = t.Assignees.Select(ta => new
+                    {
+                        id = ta.User.UserId,
+                        username = ta.User.Username
+                    }).ToList()
+                }).ToList();
+
+                return Ok(new
+                {
+                    data = taskDtos,
+                    totalCount = totalCount,
+                    page = page,
+                    pageSize = pageSize,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "获取任务列表失败" });
+            }
+        }
+
+        private IQueryable<Models.Task> ApplySorting(IQueryable<Models.Task> query, string sortBy, bool ascending)
+        {
+            switch (sortBy?.ToLower())
+            {
+                case "duedate":
+                    return ascending
+                        ? query.OrderBy(t => t.DueDate)
+                        : query.OrderByDescending(t => t.DueDate);
+                case "priority":
+                    return ascending
+                        ? query.OrderBy(t => t.Priority)
+                        : query.OrderByDescending(t => t.Priority);
+                case "createdat":
+                    return ascending
+                        ? query.OrderBy(t => t.CreatedAt)
+                        : query.OrderByDescending(t => t.CreatedAt);
+                case "updatedat":
+                    return ascending
+                        ? query.OrderBy(t => t.UpdatedAt)
+                        : query.OrderByDescending(t => t.UpdatedAt);
+                case "completedat":
+                    return ascending
+                        ? query.OrderBy(t => t.CompletedAt)
+                        : query.OrderByDescending(t => t.CompletedAt);
+                default:
+                    // 默认按创建时间降序排序
+                    return query.OrderByDescending(t => t.CreatedAt);
+            }
         }
 
         // GET: api/tasks/{taskId}

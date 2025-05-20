@@ -86,9 +86,62 @@ async function createTask(taskData) {
     return request("/tasks", "POST", taskData, token);
 }
 
-async function getTasks(params = {}) { 
-    const token = localStorage.getItem("authToken");
-    return request("/tasks", "GET", params, token);
+// 获取任务列表，支持搜索和排序
+async function getTasks(params = {}) {
+    try {
+        // 构建查询参数
+        const queryParams = new URLSearchParams();
+        
+        // 添加搜索和筛选参数
+        if (params.searchText) queryParams.append('searchText', params.searchText);
+        if (params.status) queryParams.append('status', params.status);
+        if (params.priority) queryParams.append('priority', params.priority);
+        if (params.sortBy) {
+            // 将前端参数转换为后端期望的格式
+            let backendSortBy = params.sortBy;
+            if (params.sortBy === 'duedate') backendSortBy = 'duedate';
+            else if (params.sortBy === 'priority') backendSortBy = 'priority';
+            else if (params.sortBy === 'createdat') backendSortBy = 'createdat';
+            else if (params.sortBy === 'updatedat') backendSortBy = 'updatedat';
+            else if (params.sortBy === 'completedat') backendSortBy = 'completedat';
+            
+            queryParams.append('sortBy', backendSortBy);
+            queryParams.append('ascending', params.ascending);
+        }
+        if (params.ascending !== undefined) queryParams.append('ascending', params.ascending);
+        
+        // 添加分页参数
+        if (params.page) queryParams.append('page', params.page);
+        if (params.pageSize) queryParams.append('pageSize', params.pageSize);
+        
+        // 构建URL
+        const url = `${API_BASE_URL}/tasks?${queryParams.toString()}`;
+        
+        // 获取认证令牌
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            throw new Error('未登录，请先登录');
+        }
+        
+        // 发送请求
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '获取任务列表失败');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('获取任务列表失败:', error);
+        throw error;
+    }
 }
 
 async function getTaskDetails(taskId) {

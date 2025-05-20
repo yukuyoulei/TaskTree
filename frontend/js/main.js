@@ -2,6 +2,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded and parsed');
 
+    // 首先填充筛选选项
+    if (typeof populateFilterOptions === 'function') populateFilterOptions();
+
     // Initialize UI elements and event listeners
     if (typeof initializeUI === 'function') {
         initializeUI();
@@ -16,8 +19,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.id || window.location.pathname.split('/').pop().split('.')[0];
     switch (page) {
         case 'task-list':
+            // 确保先填充筛选选项再加载任务
             if (typeof loadTasks === 'function') loadTasks();
-            if (typeof populateFilterOptions === 'function') populateFilterOptions();
+            
+            // 添加搜索按钮事件监听
+            const searchButton = document.getElementById('search-button');
+            if (searchButton) {
+                searchButton.addEventListener('click', () => {
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput && searchInput.value) {
+                        currentSearchParams.searchText = searchInput.value;
+                        loadTasks();
+                    }
+                });
+            }
+            
+            // 添加应用筛选按钮事件监听
+            const applyFiltersButton = document.getElementById('apply-filters');
+            if (applyFiltersButton) {
+                applyFiltersButton.addEventListener('click', () => {
+                    // 重新填充筛选选项以确保数据最新
+                    if (typeof populateFilterOptions === 'function') populateFilterOptions();
+                    
+                    const statusFilter = document.getElementById('filter-status');
+                    const priorityFilter = document.getElementById('filter-priority');
+                    const sortBy = document.getElementById('sort-by');
+                    const sortDirection = document.getElementById('sort-direction');
+                    
+                    if (statusFilter) currentSearchParams.status = statusFilter.value;
+                    if (priorityFilter) currentSearchParams.priority = priorityFilter.value;
+                    if (sortBy) currentSearchParams.sortBy = sortBy.value;
+                    if (sortDirection) currentSearchParams.ascending = sortDirection.value === 'true';
+                    
+                    loadTasks();
+                });
+            }
+            
+            // 添加重置按钮事件监听
+            const resetFiltersButton = document.getElementById('reset-filters');
+            if (resetFiltersButton) {
+                resetFiltersButton.addEventListener('click', () => {
+                    currentSearchParams = {
+                        searchText: '',
+                        status: '',
+                        priority: '',
+                        sortBy: '',
+                        ascending: false,
+                        page: 1,
+                        pageSize: 10
+                    };
+                    
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput) searchInput.value = '';
+                    
+                    const statusFilter = document.getElementById('filter-status');
+                    if (statusFilter) statusFilter.value = '';
+                    
+                    const priorityFilter = document.getElementById('filter-priority');
+                    if (priorityFilter) priorityFilter.value = '';
+                    
+                    const sortBy = document.getElementById('sort-by');
+                    if (sortBy) sortBy.value = '';
+                    
+                    const sortDirection = document.getElementById('sort-direction');
+                    if (sortDirection) sortDirection.value = 'true';
+                    
+                    loadTasks();
+                });
+            }
             break;
         case 'task-detail':
             if (typeof loadTaskDetails === 'function') loadTaskDetails();

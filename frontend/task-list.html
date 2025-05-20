@@ -7,6 +7,52 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- 引入Quill富文本编辑器的样式 -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        /* 搜索和筛选区域样式 */
+        .search-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        
+        .search-box {
+            flex: 1 1 300px;
+            display: flex;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .search-box button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .filter-options {
+            flex: 1 1 300px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-options select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -22,9 +68,38 @@
     <main>
         <h2>任务列表</h2>
         <button id="create-task-button">创建新任务</button>
-        <div id="task-filters">
-            <!-- 筛选器将在这里添加 -->
+        
+        <!-- 搜索和筛选区域 -->
+        <div class="search-filter-container">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索任务标题...">
+                <button id="search-button">搜索</button>
+            </div>
+            <div class="filter-options">
+                <select id="filter-status">
+                    <option value="">所有状态</option>
+                    <!-- 状态选项将在这里动态加载 -->
+                </select>
+                <select id="filter-priority">
+                    <option value="">所有优先级</option>
+                    <!-- 优先级选项将在这里动态加载 -->
+                </select>
+                <select id="sort-by">
+                    <option value="">默认排序</option>
+                    <option value="duedate">截止日期</option>
+                    <option value="priority">优先级</option>
+                    <option value="createdat">创建时间</option>
+                    <option value="updatedat">修改时间</option>
+                </select>
+                <select id="sort-direction">
+                    <option value="true">升序</option>
+                    <option value="false">降序</option>
+                </select>
+                <button id="apply-filters">应用筛选</button>
+                <button id="reset-filters">重置</button>
+            </div>
         </div>
+        
         <table id="task-table">
             <thead>
                 <tr>

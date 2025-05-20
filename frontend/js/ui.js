@@ -144,63 +144,247 @@ function initializeUI() {
     if(relationsForm) relationsForm.addEventListener("submit", handleRelationsFormSubmit);
 }
 // --- Task List Page Functions ---
-async function loadTasks() {
-    const taskListBody = document.getElementById("task-list-body");
-    if (!taskListBody) return;
-    taskListBody.innerHTML = "<tr><td colspan=\"6\">Loading...</td></tr>"; // Clear previous tasks
-    try {
-        const response = await getTasks(); // 1. 'response' 是完整的API响应对象
-        const taskArray = response.tasks;   // 2. 从响应中获取 'tasks' 数组
+// 全局变量，用于存储当前的搜索和筛选条件
+let currentSearchParams = {
+    searchText: '',
+    status: '',
+    priority: '',
+    sortBy: '',
+    ascending: false,
+    page: 1,
+    pageSize: 10
+};
 
-        if (taskArray && taskArray.length > 0) { // 3. 现在判断 taskArray.length
-            taskListBody.innerHTML = ""; // Clear loading message
-            taskArray.forEach(task => { // 4. 遍历 taskArray
-                const row = taskListBody.insertRow();
-                row.innerHTML = `
-                    <td><a href="task-detail.html?id=${task.taskId}">${task.title}</a></td>
-                    <td>${task.assignees && task.assignees.length > 0 ? task.assignees.map(a => a.username).join(", ") : "N/A"}</td>
-                    <td>${task.status}</td>
-                    <td>${task.priority || "N/A"}</td>
-                    <td>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "N/A"}</td>
-                    <td>
-                        <button onclick="openTaskModal(\'${task.taskId}\')">Edit</button>
-                        <button onclick="confirmDeleteTask(\'${task.taskId}\')">Delete</button>
-                    </td>
-                `;
-            });
-        } else {
-            taskListBody.innerHTML = "<tr><td colspan=\"6\">No tasks found.</td></tr>";
+// 加载任务列表
+async function loadTasks(page = 1, pageSize = 10) {
+    try {
+        // 使用当前的搜索参数
+        const params = {
+            ...currentSearchParams,
+            page: page,
+            pageSize: pageSize
+        };
+        
+        const response = await getTasks(params);
+        const taskListBody = document.getElementById('task-list-body');
+        if (!taskListBody) return;
+        
+        taskListBody.innerHTML = '';
+        
+        if (response.data.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="6" style="text-align: center;">没有找到任务</td>`;
+            taskListBody.appendChild(row);
+            return;
         }
+        
+        response.data.forEach(task => {
+            const row = document.createElement('tr');
+            
+            // 格式化截止日期
+            let dueDateDisplay = '无截止日期';
+            if (task.dueDate) {
+                const dueDate = new Date(task.dueDate);
+                dueDateDisplay = dueDate.toLocaleDateString();
+            }
+            
+            // 获取负责人名称列表
+            const assigneeNames = task.assignees ? task.assignees.map(a => a.username).join(', ') : '无负责人';
+            
+            row.innerHTML = `
+                <td><a href="task-detail.html?id=${task.id}">${task.title}</a></td>
+                <td>${assigneeNames}</td>
+                <td>${task.status}</td>
+                <td>${task.priority}</td>
+                <td>${dueDateDisplay}</td>
+                <td>
+                    <button class="edit-task" data-id="${task.id}">编辑</button>
+                    <button class="delete-task" data-id="${task.id}">删除</button>
+                </td>
+            `;
+            
+            taskListBody.appendChild(row);
+        });
+        
+        // 添加编辑和删除按钮的事件监听器
+        document.querySelectorAll('.edit-task').forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-id');
+                openTaskModal(taskId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-task').forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-id');
+                confirmDeleteTask(taskId);
+            });
+        });
+        
+        // 更新分页控件
+        updatePagination(response.totalCount, page, pageSize);
+        
     } catch (error) {
-        taskListBody.innerHTML = `<tr><td colspan=\"6\">Error loading tasks: ${error.message}</td></tr>`;
-        console.error("Error in loadTasks:", error); // 建议添加 console.error 以便调试
+        console.error('加载任务失败:', error);
+        showError('加载任务失败，请检查网络连接或刷新页面重试。');
     }
 }
 
+// 更新分页控件
+function updatePagination(totalCount, currentPage, pageSize) {
+    const paginationDiv = document.getElementById('pagination');
+    if (!paginationDiv) return;
+    
+    const totalPages = Math.ceil(totalCount / pageSize);
+    paginationDiv.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // 添加上一页按钮
+    const prevButton = document.createElement('button');
+    prevButton.textContent = '上一页';
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener('click', () => loadTasks(currentPage - 1, pageSize));
+    paginationDiv.appendChild(prevButton);
+    
+    // 添加页码按钮
+    const maxPageButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+    
+    if (endPage - startPage + 1 < maxPageButtons) {
+        startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.textContent = i;
+        pageButton.classList.toggle('active', i === currentPage);
+        pageButton.addEventListener('click', () => loadTasks(i, pageSize));
+        paginationDiv.appendChild(pageButton);
+    }
+    
+    // 添加下一页按钮
+    const nextButton = document.createElement('button');
+    nextButton.textContent = '下一页';
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.addEventListener('click', () => loadTasks(currentPage + 1, pageSize));
+    paginationDiv.appendChild(nextButton);
+}
+
+// 初始化搜索和筛选功能
+function initializeSearchAndFilters() {
+    // 填充筛选选项
+    populateFilterOptions();
+    
+    // 搜索按钮点击事件
+    const searchButton = document.getElementById('search-button');
+    if (searchButton) {
+        searchButton.addEventListener('click', applySearchAndFilters);
+    }
+    
+    // 搜索框回车事件
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applySearchAndFilters();
+            }
+        });
+    }
+    
+    // 应用筛选按钮点击事件
+    const applyFiltersButton = document.getElementById('apply-filters');
+    if (applyFiltersButton) {
+        applyFiltersButton.addEventListener('click', applySearchAndFilters);
+    }
+    
+    // 重置筛选按钮点击事件
+    const resetFiltersButton = document.getElementById('reset-filters');
+    if (resetFiltersButton) {
+        resetFiltersButton.addEventListener('click', resetSearchAndFilters);
+    }
+}
+
+// 应用搜索和筛选条件
+function applySearchAndFilters() {
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('filter-status');
+    const priorityFilter = document.getElementById('filter-priority');
+    const sortBySelect = document.getElementById('sort-by');
+    const sortDirectionSelect = document.getElementById('sort-direction');
+    
+    // 更新全局搜索参数
+    currentSearchParams = {
+        searchText: searchInput ? searchInput.value : '',
+        status: statusFilter ? statusFilter.value : '',
+        priority: priorityFilter ? priorityFilter.value : '',
+        sortBy: sortBySelect ? sortBySelect.value : '',
+        ascending: sortDirectionSelect ? sortDirectionSelect.value === 'true' : false,
+        page: 1, // 重置到第一页
+        pageSize: currentSearchParams.pageSize
+    };
+    
+    // 重新加载任务列表
+    loadTasks(1, currentSearchParams.pageSize);
+}
+
+// 重置搜索和筛选条件
+function resetSearchAndFilters() {
+    // 重置输入框和下拉选择框
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = '';
+    
+    const statusFilter = document.getElementById('filter-status');
+    if (statusFilter) statusFilter.value = '';
+    
+    const priorityFilter = document.getElementById('filter-priority');
+    if (priorityFilter) priorityFilter.value = '';
+    
+    const sortBySelect = document.getElementById('sort-by');
+    if (sortBySelect) sortBySelect.value = '';
+    
+    const sortDirectionSelect = document.getElementById('sort-direction');
+    if (sortDirectionSelect) sortDirectionSelect.value = 'false';
+    
+    // 重置全局搜索参数
+    currentSearchParams = {
+        searchText: '',
+        status: '',
+        priority: '',
+        sortBy: '',
+        ascending: false,
+        page: 1,
+        pageSize: 10
+    };
+    
+    // 重新加载任务列表
+    loadTasks(1, 10);
+}
 
 async function populateFilterOptions() {
     // Populate status and priority dropdowns in task modal and filter sections
-    const taskStatusSelect = document.getElementById("task-status");
-    const taskPrioritySelect = document.getElementById("task-priority");
+    const taskStatusSelect = document.getElementById("filter-status");
+    const taskPrioritySelect = document.getElementById("filter-priority");
 
     try {
         const statuses = await getTaskStatuses() || ["待办", "进行中", "已完成", "已取消"]; // 中文后备选项
         const priorities = await getTaskPriorities() || ["高", "中", "低"]; // 中文后备选项
 
-        if (taskStatusSelect) {
+        if (taskStatusSelect && taskStatusSelect.options.length <= 1) {
             statuses.forEach(status => {
                 const option = document.createElement("option");
                 option.value = status;
                 option.textContent = status;
-                taskStatusSelect.appendChild(option);
+                taskStatusSelect.options.add(option);
             });
         }
-        if (taskPrioritySelect) {
+        if (taskPrioritySelect && taskPrioritySelect.options.length <= 1) {
             priorities.forEach(priority => {
                 const option = document.createElement("option");
                 option.value = priority;
                 option.textContent = priority;
-                taskPrioritySelect.appendChild(option);
+                taskPrioritySelect.options.add(option);
             });
         }
         
@@ -467,13 +651,13 @@ async function loadTaskDetails() {
 }
 
 async function loadTaskRelationships(taskId) {
-    const relationsList = document.getElementById("current-relations-list");
-    if (!relationsList) return;
-    relationsList.innerHTML = "<li>Loading relationships...</li>";
+    const relationshipsList = document.getElementById("current-relations-list");
+    if (!relationshipsList) return;
+    relationshipsList.innerHTML = "<li>Loading relationships...</li>";
     try {
-        const relations = await getTaskRelationships(taskId);
-        relationsList.innerHTML = "";
-        if (relations && relations.length > 0) {
+        const relationships = await getTaskRelationships(taskId);
+        relationshipsList.innerHTML = "";
+        if (relations && relationships.length > 0) {
             relations.forEach(rel => {
                 // Assuming rel has parentTask, childTask, and relationshipType properties
                 // And parentTask/childTask are objects with title and taskId
@@ -503,13 +687,13 @@ async function loadTaskRelationships(taskId) {
                     }
                 };
                 li.appendChild(deleteBtn);
-                relationsList.appendChild(li);
+                relationshipsList.appendChild(li);
             });
         } else {
-            relationsList.innerHTML = "<li>No relationships found.</li>";
+            relationshipsList.innerHTML = "<li>No relationships found.</li>";
         }
     } catch (error) {
-        relationsList.innerHTML = `<li>Error loading relationships: ${error.message}</li>`;
+        relationshipsList.innerHTML = `<li>Error loading relationships: ${error.message}</li>`;
     }
 }
 
