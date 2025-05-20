@@ -150,7 +150,7 @@ table th {
     padding: 20px;
     border: 1px solid #888;
     width: 80%; 
-    max-width: 600px;
+    max-width: 900px;
     border-radius: 8px;
     position: relative;
 }
@@ -275,9 +275,8 @@ table th {
 }
 
 #task-form {
-    background: rgba(255, 255, 255, 0.85);
-    max-width: 1400px;
-    padding-top: 0.5rem;
+    max-width: 1600px;
+    width: 95%;
 }
 
 #task-title {
@@ -295,8 +294,10 @@ table th {
 }
 
 #task-content {
-    min-height: 400px;
+    min-height: 1200px;
     height: 100%;
+    width: 100%;
+    max-width: none;
 }
 
 .form-actions {
