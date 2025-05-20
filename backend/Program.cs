@@ -18,7 +18,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://localhost") // 允许来自 http://localhost 的请求
+            policy.WithOrigins(builder.Configuration.GetSection("Origins")["urls"].Split(',', StringSplitOptions.RemoveEmptyEntries)) // 允许来自 http://localhost 的请求
                   .AllowAnyHeader()
                   .AllowAnyMethod();
             // 如果您的前端是通过特定端口（如 http://localhost:8080 ）访问的，
@@ -94,11 +94,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1"));
-    app.UseDeveloperExceptionPage();
+    app.UseSwaggerUI(/*c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskManager API v1")*/);
+    //app.UseDeveloperExceptionPage();
 }
 
 app.UseRouting();
