@@ -364,14 +364,18 @@ function resetSearchAndFilters() {
 
 async function populateFilterOptions() {
     // Populate status and priority dropdowns in task modal and filter sections
-    const taskStatusSelect = document.getElementById("filter-status");
-    const taskPrioritySelect = document.getElementById("filter-priority");
+    const taskStatusSelect = document.getElementById("task-status");
+    const filterStatusSelect = document.getElementById("filter-status");
+    const taskPrioritySelect = document.getElementById("task-priority");
+    const filterPrioritySelect = document.getElementById("filter-priority");
 
     try {
-        const statuses = await getTaskStatuses() || ["待办", "进行中", "已完成", "已取消"]; // 中文后备选项
-        const priorities = await getTaskPriorities() || ["高", "中", "低"]; // 中文后备选项
+        const statuses = await getTaskStatuses() || ["待办", "进行中", "已完成", "已取消"];
+        const priorities = await getTaskPriorities() || ["高", "中", "低"];
 
+        // 填充任务表单的状态下拉
         if (taskStatusSelect && taskStatusSelect.options.length <= 1) {
+            taskStatusSelect.innerHTML = '';
             statuses.forEach(status => {
                 const option = document.createElement("option");
                 option.value = status;
@@ -379,12 +383,37 @@ async function populateFilterOptions() {
                 taskStatusSelect.options.add(option);
             });
         }
+        
+        // 填充筛选区域的状态下拉
+        if (filterStatusSelect && filterStatusSelect.options.length <= 1) {
+            filterStatusSelect.innerHTML = '';
+            statuses.forEach(status => {
+                const option = document.createElement("option");
+                option.value = status;
+                option.textContent = status;
+                filterStatusSelect.options.add(option);
+            });
+        }
+
+        // 填充任务表单的优先级下拉
         if (taskPrioritySelect && taskPrioritySelect.options.length <= 1) {
+            taskPrioritySelect.innerHTML = '';
             priorities.forEach(priority => {
                 const option = document.createElement("option");
                 option.value = priority;
                 option.textContent = priority;
                 taskPrioritySelect.options.add(option);
+            });
+        }
+        
+        // 填充筛选区域的优先级下拉
+        if (filterPrioritySelect && filterPrioritySelect.options.length <= 1) {
+            filterPrioritySelect.innerHTML = '';
+            priorities.forEach(priority => {
+                const option = document.createElement("option");
+                option.value = priority;
+                option.textContent = priority;
+                filterPrioritySelect.options.add(option);
             });
         }
         
