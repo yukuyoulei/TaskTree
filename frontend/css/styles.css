@@ -257,3 +257,60 @@ table th {
     margin-bottom: 1rem;
 }
 
+
+#task-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 2rem;
+    border-radius: 0;
+    max-width: none;
+    background: rgba(248, 250, 252, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+#task-form {
+    background: rgba(255, 255, 255, 0.85);
+    max-width: 1400px;
+    padding-top: 0.5rem;
+}
+
+#task-title {
+    margin-bottom: 0.25rem;
+}
+
+#task-status, #task-priority, #task-due-date {
+    margin-top: 0.5rem;
+    height: calc(100% - 4rem);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 1.5rem;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+#task-content {
+    min-height: 400px;
+    height: 100%;
+}
+
+.form-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 1rem 0;
+    margin-bottom: -2rem;
+}
+
+#task-modal button.close {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1051;
+}
+
