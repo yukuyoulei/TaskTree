@@ -54,10 +54,10 @@ function initializeUI() {
             try {
                 if (taskId) {
                     await updateTask(taskId, taskData);
-                    showSuccess("Task updated successfully!");
+                    //showSuccess("Task updated successfully!");
                 } else {
                     await createTask(taskData);
-                    showSuccess("Task created successfully!");
+                    //showSuccess("Task created successfully!");
                 }
                 closeTaskModal();
                 loadTasks(); // Refresh task list
@@ -279,9 +279,6 @@ async function openTaskModal(taskId = null) {
     if (taskStatusSelect) taskStatusSelect.innerHTML = "";
     if (taskPrioritySelect) taskPrioritySelect.innerHTML = "";
     
-    // 填充负责人下拉列表
-    await populateAssigneesDropdown(); // Changed from populateUserDropdown
-    
     // 填充状态和优先级下拉列表
     await populateFilterOptions();
     
@@ -329,22 +326,21 @@ async function openTaskModal(taskId = null) {
                 const dueDate = new Date(task.dueDate);
                 const localDueDate = new Date(dueDate.getTime() - dueDate.getTimezoneOffset() * 60000)
                     .toISOString()
-                    .slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+                    .slice(0, 10); // Format: YYYY-MM-DD
                 document.getElementById("task-due-date").value = localDueDate;
             }
             
-            // Set selected assignees
-            const assigneeSelect = document.getElementById("task-assignees") || document.getElementById("assignee-select");
-            if (assigneeSelect && task.assignees && task.assignees.length > 0) {
-                for (let i = 0; i < assigneeSelect.options.length; i++) {
-                    if (task.assignees.some(a => a.userId === assigneeSelect.options[i].value)) {
-                        assigneeSelect.options[i].selected = true;
-                    }
-                }
-            }
+            // 获取任务负责人ID列表
+            const assigneeIds = task.assignees ? task.assignees.map(a => a.userId) : [];
+            // 先填充负责人下拉列表，并传入当前任务的负责人ID列表以便选中
+            await populateAssigneesDropdown(assigneeIds);
+            
         } catch (error) {
             showError("Failed to load task details: " + error.message);
         }
+    } else {
+        // 对于新任务，填充空的负责人下拉列表
+        await populateAssigneesDropdown([]);
     }
     
     // Show modal
